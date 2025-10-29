@@ -8,7 +8,7 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 
 application {
-    mainClass.set("ApplicationKt")
+    mainClass.set("com.brickstemple.ApplicationKt")
 }
 
 repositories {
