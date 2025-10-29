@@ -42,6 +42,12 @@ dependencies {
     // .env
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
+    // Tests
+    testImplementation("io.ktor:ktor-server-tests-jvm:2.3.9")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+
+
     testImplementation(kotlin("test"))
 }
 

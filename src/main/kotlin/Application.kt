@@ -15,8 +15,8 @@ fun Application.module() {
     configureDatabase()
 
     routing {
-        get("/") {
-            call.respondText("Server and Database are configured successfully!")
+        get("/health") {
+            call.respondText("OK")
         }
     }
 }
