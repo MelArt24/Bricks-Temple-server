@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.sql.Connection
 
 fun Application.configureDatabase() {
-    val config = environment.config.config("database")
+    val config = environment.config.config("ktor.database")
 
     Database.connect(
         url = config.property("url").getString(),
