@@ -39,6 +39,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("org.postgresql:postgresql:$postgresVersion")
 
+    // .env
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+
     testImplementation(kotlin("test"))
 }
 
