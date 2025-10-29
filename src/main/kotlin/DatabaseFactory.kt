@@ -7,39 +7,31 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.sql.Connection
 import io.github.cdimascio.dotenv.dotenv
+import io.ktor.server.config.*
+import com.typesafe.config.ConfigFactory
 
 fun Application.configureDatabase() {
+    val dotenv = dotenv {
+        directory = System.getProperty("user.dir")
+        ignoreIfMissing = true
+    }
 
-//    val dotenv = dotenv()
-//    val dbUrl = dotenv["DB_URL"]
-//    val dbUser = dotenv["DB_USER"]
-//    val dbPassword = dotenv["DB_PASSWORD"]
-//
-//    Database.connect(
-//        url = dbUrl ?: error("DB_URL not found"),
-//        driver = "org.postgresql.Driver",
-//        user = dbUser ?: error("DB_USER not found"),
-//        password = dbPassword ?: error("DB_PASSWORD not found")
-//    )
+    val config = HoconApplicationConfig(ConfigFactory.load()).config("ktor.database")
 
-    val config = environment.config.config("ktor.database")
+    val dbUrl = config.propertyOrNull("url")?.getString() ?: dotenv["DB_URL"]
+    val dbUser = config.propertyOrNull("user")?.getString() ?: dotenv["DB_USER"]
+    val dbPassword = config.propertyOrNull("password")?.getString() ?: dotenv["DB_PASSWORD"]
+
     Database.connect(
-        url = config.property("url").getString(),
-        driver = config.property("driver").getString(),
-        user = config.property("user").getString(),
-        password = config.property("password").getString()
+        url = dbUrl ?: error("DB_URL not found"),
+        driver = config.propertyOrNull("driver")?.getString() ?: "org.postgresql.Driver",
+        user = dbUser ?: error("DB_USER not found"),
+        password = dbPassword ?: error("DB_PASSWORD not found")
     )
-
-
-    TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
     transaction {
 //        exec("SELECT 1;") { rs ->
-//            if (rs.next()) {
-//                println("✅✅✅ Database test query succeeded!")
-//            }
+//            if (rs.next()) println("✅ Database test query succeeded!")
 //        }
     }
-
-//    log.info("✅✅✅ Connected to PostgreSQL database!")
 }
