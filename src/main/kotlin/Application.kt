@@ -14,8 +14,12 @@ fun main() {
         .start(wait = true)
 }
 
-fun Application.module() {
-    configureDatabase()
+fun Application.module(testing: Boolean = false) {
+
+    if (!testing) {
+        configureDatabase()
+    }
+
     configureSerialization()
 
     routing {

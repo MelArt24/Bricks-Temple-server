@@ -9,7 +9,7 @@ class ApplicationTest {
     @Test
     fun testRootEndpoint() = testApplication {
         application {
-            module()
+            module(testing = true)
         }
         val response = client.get("/health")
         assertEquals(200, response.status.value)
