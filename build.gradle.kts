@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.20"
     id("io.ktor.plugin") version "3.0.0"
     application
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 group = "org.example"
@@ -46,9 +47,12 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:2.3.9")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-
-
     testImplementation(kotlin("test"))
+
+    // ContentNegotiation + JSON
+    implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
 
 tasks.test {

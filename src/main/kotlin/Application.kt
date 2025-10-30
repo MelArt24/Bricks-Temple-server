@@ -1,5 +1,8 @@
 package com.brickstemple
 
+import com.brickstemple.repositories.ProductRepository
+import com.brickstemple.plugins.configureSerialization
+import com.brickstemple.routes.productRoutes
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.application.*
@@ -13,10 +16,11 @@ fun main() {
 
 fun Application.module() {
     configureDatabase()
+    configureSerialization()
 
     routing {
-        get("/health") {
-            call.respondText("OK")
-        }
+        productRoutes(ProductRepository())
+
+        get("/health") { call.respondText("OK") }
     }
 }
