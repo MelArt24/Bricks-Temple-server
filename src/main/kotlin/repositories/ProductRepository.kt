@@ -9,17 +9,17 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
-class ProductRepository {
+open class ProductRepository {
 
-    fun getAll(): List<ProductDto> = transaction {
+    open fun getAll(): List<ProductDto> = transaction {
         Products.selectAll().orderBy(Products.id to SortOrder.DESC).map { it.toProductDto() }
     }
 
-    fun getById(id: Int): ProductDto? = transaction {
+    open fun getById(id: Int): ProductDto? = transaction {
         Products.select { Products.id eq id }.singleOrNull()?.toProductDto()
     }
 
-    fun create(p: ProductDto): Int = transaction {
+    open fun create(p: ProductDto): Int = transaction {
         Products.insert {
             it[name]        = p.name
             it[category]    = p.category
@@ -59,7 +59,7 @@ class ProductRepository {
     }
 
     @Override
-    fun update(id: Int, product: ProductUpdateDto): Boolean {
+    open fun update(id: Int, product: ProductUpdateDto): Boolean {
         return transaction {
             val existing = Products.select { Products.id eq id }.singleOrNull()
                 ?: return@transaction false
@@ -84,7 +84,7 @@ class ProductRepository {
     }
 
 
-    fun delete(id: Int): Boolean = transaction {
+    open fun delete(id: Int): Boolean = transaction {
         Products.deleteWhere { Products.id eq id } > 0
     }
 }
