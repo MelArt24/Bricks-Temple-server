@@ -1,6 +1,7 @@
 package com.brickstemple
 
 import com.brickstemple.models.Products
+import com.brickstemple.models.Users
 import io.ktor.server.application.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -32,6 +33,7 @@ fun Application.configureDatabase() {
 
     transaction {
         SchemaUtils.create(Products)
+        SchemaUtils.create(Users)
 //        exec("SELECT 1;") { rs ->
 //            if (rs.next()) println("✅ Database test query succeeded!")
 //        }

@@ -2,7 +2,9 @@ package com.brickstemple
 
 import com.brickstemple.repositories.ProductRepository
 import com.brickstemple.plugins.configureSerialization
+import com.brickstemple.repositories.UserRepository
 import com.brickstemple.routes.productRoutes
+import com.brickstemple.routes.userRoutes
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.application.*
@@ -24,6 +26,7 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         productRoutes(ProductRepository())
+        userRoutes(UserRepository())
 
         get("/health") { call.respondText("OK") }
     }

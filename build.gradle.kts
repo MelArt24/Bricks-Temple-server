@@ -53,6 +53,10 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+    // Crypt
+    implementation("org.mindrot:jbcrypt:0.4")
+
 }
 
 tasks.test {

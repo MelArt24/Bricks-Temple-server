@@ -1,6 +1,6 @@
 package com.brickstemple.routes
 
-import CreatedResponse
+import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ProductDto
 import com.brickstemple.dto.ProductUpdateDto
 import com.brickstemple.repositories.ProductRepository

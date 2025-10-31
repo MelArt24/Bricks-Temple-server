@@ -1,4 +1,4 @@
-package com.brickstemple
+package com.brickstemple.fakeRepositories
 
 import com.brickstemple.dto.ProductDto
 import com.brickstemple.dto.ProductUpdateDto

@@ -1,3 +1,5 @@
+package com.brickstemple.dto
+
 import kotlinx.serialization.Serializable
 
 @Serializable
