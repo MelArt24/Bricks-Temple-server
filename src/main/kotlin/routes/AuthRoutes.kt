@@ -33,6 +33,14 @@ fun Route.authRoutes(userRepo: UserRepository) {
                     return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Password must be at least 6 characters long"))
                 }
 
+                val existing = userRepo.getByEmail(user.email)
+                if (existing != null) {
+                    return@post call.respond(
+                        HttpStatusCode.Conflict,
+                        ErrorResponse("User with this email already exists")
+                    )
+                }
+
                 val newUserId = userRepo.create(
                     UserDto(
                         username = user.username,
