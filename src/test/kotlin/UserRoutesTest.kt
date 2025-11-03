@@ -12,6 +12,11 @@ import kotlin.test.*
 
 class UserRoutesTest {
 
+    @BeforeTest
+    fun setEnv() {
+        System.setProperty("JWT_SECRET", "test_secret")
+    }
+
     private suspend fun loginAndGetToken(client: HttpClient, email: String, password: String): String {
         val response = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
