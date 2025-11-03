@@ -3,10 +3,19 @@ package com.brickstemple.security
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import io.github.cdimascio.dotenv.dotenv
 import java.util.*
 
 object JwtConfig {
-    private const val secret = "super_secret_key"          // можеш винести в .env
+
+    private val dotenv = dotenv {
+        ignoreIfMissing = true
+    }
+
+    private val secret: String = System.getenv("JWT_SECRET")
+        ?: dotenv["JWT_SECRET"]
+        ?: throw IllegalStateException("JWT_SECRET is not set! Add it to .env or Render env variables.")
+
     private const val issuer = "bricks-temple"
     private const val audience = "bricks-temple-users"
     const val realm = "bricks-temple"
