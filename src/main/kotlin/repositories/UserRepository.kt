@@ -50,7 +50,7 @@ open class UserRepository {
         Users.update({ Users.id eq id }) {
             it[username] = u.username
             it[email] = u.email
-            it[password] = u.password
+            it[password] = HashUtil.hashPassword(u.password)
             u.role?.let { roleValue -> it[role] = roleValue }
         } > 0
     }
@@ -58,4 +58,18 @@ open class UserRepository {
     open fun delete(id: Int): Boolean = transaction {
         Users.deleteWhere { Users.id eq id } > 0
     }
+
+    open fun getByEmail(email: String): UserDto? = transaction {
+        Users.select { Users.email eq email }.singleOrNull()?.let {
+            UserDto(
+                id = it[Users.id],
+                username = it[Users.username],
+                email = it[Users.email],
+                password = it[Users.password],
+                role = it[Users.role],
+                createdAt = it[Users.createdAt]
+            )
+        }
+    }
+
 }

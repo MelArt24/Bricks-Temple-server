@@ -1,13 +1,23 @@
 package com.brickstemple.routes
 
-import com.brickstemple.dto.CreatedResponse
+import com.brickstemple.dto.ErrorResponse
 import com.brickstemple.dto.UserDto
+import com.brickstemple.dto.UserResponseDto
 import com.brickstemple.repositories.UserRepository
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.postgresql.util.PSQLException
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class UserMeResponse(
+    val id: Int,
+    val email: String,
+    val message: String = "Authenticated successfully"
+)
 
 
 fun Route.userRoutes(repo: UserRepository) {
@@ -17,13 +27,23 @@ fun Route.userRoutes(repo: UserRepository) {
         get {
             try {
                 val users = repo.getAll()
+
                 if (users.isEmpty()) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "No users found"))
                 } else {
-                    call.respond(HttpStatusCode.OK, users)
+                    val response = users.map {
+                        UserResponseDto(
+                            id = it.id!!,
+                            username = it.username,
+                            email = it.email,
+                            role = it.role,
+                            createdAt = it.createdAt
+                        )
+                    }
+                    call.respond(HttpStatusCode.OK, response)
                 }
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Unexpected error: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Unexpected error", e.message))
             }
         }
 
@@ -33,6 +53,7 @@ fun Route.userRoutes(repo: UserRepository) {
 
             try {
                 val user = repo.getById(id)
+
                 if (user == null) {
                     call.respond(HttpStatusCode.NotFound, ErrorResponse("User with id=$id not found"))
                 } else {
@@ -43,73 +64,83 @@ fun Route.userRoutes(repo: UserRepository) {
             }
         }
 
-        post {
-            try {
-                val body = call.receive<UserDto>()
+        authenticate("auth-jwt") {
+            get("/me") {
+                try {
+                    val principal = call.principal<JWTPrincipal>()
+                        ?: return@get call.respond(HttpStatusCode.Unauthorized, ErrorResponse("No token"))
 
-                if (body.username.isBlank() || body.email.isBlank() || body.password.isBlank()) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        ErrorResponse("Missing required fields: username/email/password")
+                    val id = principal.payload.getClaim("id").asInt()
+                    val email = principal.payload.getClaim("email").asString()
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        UserMeResponse(id = id, email = email)
+                    )
+
+                } catch (e: Exception) {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        ErrorResponse("Server error", e.message)
                     )
                 }
-
-                if (!body.email.contains("@")) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        ErrorResponse("Invalid email format")
-                    )
-                }
-
-                val newId = repo.create(body)
-
-                call.respond(HttpStatusCode.Created, CreatedResponse(
-                    message = "User created successfully",
-                    id = newId
-                )
-                )
-
-            } catch (e: PSQLException) {
-                if (e.message?.contains("unique") == true) {
-                    call.respond(HttpStatusCode.Conflict, ErrorResponse("User with this email or username already exists"))
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Database error: ${e.message}"))
-                }
-
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid data: ${e.message}"))
             }
-        }
 
+            delete("{id}") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val role = principal.payload.getClaim("role").asString()
 
-        put("{id}") {
-            val id = call.parameters["id"]?.toIntOrNull()
-                ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid id"))
-
-            try {
-                val body = call.receive<UserDto>()
-                val updated = repo.update(id, body)
-                if (updated) {
-                    call.respond(HttpStatusCode.OK, mapOf("message" to "User updated successfully"))
-                } else {
-                    call.respond(HttpStatusCode.NotFound, ErrorResponse("User with id=$id not found"))
+                if (role != "admin") {
+                    return@delete call.respond(HttpStatusCode.Forbidden, ErrorResponse("Only admin can delete users"))
                 }
 
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid data: ${e.message}"))
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid id"))
+
+                try {
+                    val ok = repo.delete(id)
+                    if (ok) {
+                        call.respond(HttpStatusCode.NoContent)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, ErrorResponse("User with id=$id not found"))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Unexpected error", e.message))
+                }
             }
-        }
 
-        delete("{id}") {
-            val id = call.parameters["id"]?.toIntOrNull()
-                ?: return@delete call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid id"))
+            put("{id}") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val requesterId = principal.payload.getClaim("id").asInt()
+                val requesterRole = principal.payload.getClaim("role").asString()
 
-            try {
-                val ok = repo.delete(id)
-                if (ok) call.respond(HttpStatusCode.NoContent)
-                else call.respond(HttpStatusCode.NotFound, ErrorResponse("User with id=$id not found"))
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Unexpected error: ${e.message}"))
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid id"))
+
+                if (requesterRole != "admin" && requesterId != id) {
+                    return@put call.respond(HttpStatusCode.Forbidden, ErrorResponse("You can only update your own account"))
+                }
+
+                try {
+                    val body = call.receive<UserDto>()
+
+                    val safeUserDto = if (requesterRole != "admin") {
+                        body.copy(role = "user")
+                    } else {
+                        body
+                    }
+
+                    val updated = repo.update(id, safeUserDto)
+
+                    if (updated) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "User updated successfully"))
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, ErrorResponse("User with id=$id not found"))
+                    }
+
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid data: ${e.message}"))
+                }
             }
         }
     }

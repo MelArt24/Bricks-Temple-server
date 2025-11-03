@@ -40,7 +40,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("org.postgresql:postgresql:$postgresVersion")
 
-    // .env
+    // .env support
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     // Tests
@@ -54,8 +54,15 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
-    // Crypt
+    // BCrypt
     implementation("org.mindrot:jbcrypt:0.4")
+
+    // JWT + Authentication (Ktor 3.0.0)
+    implementation("io.ktor:ktor-server-auth-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktorVersion")
+
+    // JSON Web Tokens (Auth0 Java JWT)
+    implementation("com.auth0:java-jwt:4.4.0")
 
 }
 

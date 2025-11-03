@@ -34,8 +34,5 @@ fun Application.configureDatabase() {
     transaction {
         SchemaUtils.create(Products)
         SchemaUtils.create(Users)
-//        exec("SELECT 1;") { rs ->
-//            if (rs.next()) println("✅ Database test query succeeded!")
-//        }
     }
 }

@@ -1,6 +1,7 @@
 package com.brickstemple.routes
 
 import com.brickstemple.dto.CreatedResponse
+import com.brickstemple.dto.ErrorResponse
 import com.brickstemple.dto.ProductDto
 import com.brickstemple.dto.ProductUpdateDto
 import com.brickstemple.repositories.ProductRepository
@@ -10,8 +11,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class ErrorResponse(val error: String)
 
 fun Route.productRoutes(repo: ProductRepository) {
 
