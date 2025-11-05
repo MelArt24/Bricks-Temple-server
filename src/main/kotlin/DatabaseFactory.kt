@@ -1,5 +1,6 @@
 package com.brickstemple
 
+import com.brickstemple.models.Orders
 import com.brickstemple.models.Products
 import com.brickstemple.models.Users
 import io.ktor.server.application.*
@@ -34,5 +35,6 @@ fun Application.configureDatabase() {
     transaction {
         SchemaUtils.create(Products)
         SchemaUtils.create(Users)
+        SchemaUtils.create(Orders)
     }
 }

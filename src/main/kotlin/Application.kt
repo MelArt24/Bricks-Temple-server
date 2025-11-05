@@ -3,8 +3,10 @@ package com.brickstemple
 import com.brickstemple.plugins.configureSecurity
 import com.brickstemple.repositories.ProductRepository
 import com.brickstemple.plugins.configureSerialization
+import com.brickstemple.repositories.OrderRepository
 import com.brickstemple.repositories.UserRepository
 import com.brickstemple.routes.authRoutes
+import com.brickstemple.routes.orderRoutes
 import com.brickstemple.routes.productRoutes
 import com.brickstemple.routes.userRoutes
 import io.ktor.server.engine.*
@@ -23,7 +25,8 @@ fun main() {
 fun Application.module(
     testing: Boolean = false,
     userRepo: UserRepository = UserRepository(),
-    productRepo: ProductRepository = ProductRepository()
+    productRepo: ProductRepository = ProductRepository(),
+    orderRepo: OrderRepository = OrderRepository()
 ) {
     if (!testing) {
         configureDatabase()
@@ -37,6 +40,7 @@ fun Application.module(
 
         authenticate("auth-jwt") {
             userRoutes(userRepo)
+            orderRoutes(orderRepo)
         }
 
         productRoutes(productRepo)
