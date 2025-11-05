@@ -21,6 +21,7 @@ object Products : Table("products") {
     val description = text("description").nullable()
     val type = varchar("type", 32)                  // "set", "minifigure" etc
     val keywords = text("keywords").nullable()
+    val isAvailable = bool("is_available").default(true)
 
     override val primaryKey = PrimaryKey(id)
 }

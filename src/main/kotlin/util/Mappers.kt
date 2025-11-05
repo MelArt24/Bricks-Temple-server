@@ -20,5 +20,6 @@ fun ResultRow.toProductDto() = ProductDto(
     image = this[Products.image],
     description = this[Products.description],
     type = this[Products.type],
-    keywords = this[Products.keywords]
+    keywords = this[Products.keywords],
+    isAvailable = this[Products.isAvailable]
 )

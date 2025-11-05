@@ -21,5 +21,6 @@ data class ProductUpdateDto(
     val image: String? = null,
     val description: String? = null,
     val type: String? = null,
-    val keywords: String? = null
+    val keywords: String? = null,
+    val isAvailable: Boolean = true
 )

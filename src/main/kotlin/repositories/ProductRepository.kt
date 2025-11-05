@@ -36,6 +36,7 @@ open class ProductRepository {
             it[description] = p.description
             it[type]        = p.type
             it[keywords]    = p.keywords
+            it[isAvailable] = p.isAvailable
         } get Products.id
     }
 
@@ -55,6 +56,7 @@ open class ProductRepository {
             it[description] = p.description
             it[type]        = p.type
             it[keywords]    = p.keywords
+            it[isAvailable] = p.isAvailable
         } > 0
     }
 
@@ -79,6 +81,7 @@ open class ProductRepository {
                 product.description?.let { desc -> it[Products.description] = desc }
                 product.type?.let { type -> it[Products.type] = type }
                 product.keywords?.let { keywords -> it[Products.keywords] = keywords }
+                product.isAvailable?.let { available -> it[isAvailable] = available }
             } > 0
         }
     }

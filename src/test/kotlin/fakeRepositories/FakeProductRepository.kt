@@ -20,7 +20,7 @@ class FakeProductRepository : ProductRepository() {
         val newProduct = p.copy(
             id = newId,
             createdAt = LocalDateTime.now(),
-            price = p.price
+            price = p.price,
         )
         products.add(newProduct)
         return newId
@@ -45,7 +45,8 @@ class FakeProductRepository : ProductRepository() {
             image = product.image ?: old.image,
             description = product.description ?: old.description,
             type = product.type ?: old.type,
-            keywords = product.keywords ?: old.keywords
+            keywords = product.keywords ?: old.keywords,
+            isAvailable = product.isAvailable ?: old.isAvailable
         )
 
         products[existingIndex] = updated

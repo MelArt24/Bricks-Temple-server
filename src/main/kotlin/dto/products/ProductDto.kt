@@ -22,5 +22,6 @@ data class ProductDto(
     val image: String? = null,
     val description: String? = null,
     val type: String,
-    val keywords: String? = null
+    val keywords: String? = null,
+    val isAvailable: Boolean = true
 )
