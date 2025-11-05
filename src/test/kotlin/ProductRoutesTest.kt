@@ -1,9 +1,14 @@
 package com.brickstemple
 
+import TokenResponse
 import com.brickstemple.dto.products.ProductDto
+import com.brickstemple.dto.users.UserDto
 import com.brickstemple.fakeRepositories.FakeProductRepository
+import com.brickstemple.fakeRepositories.FakeUserRepository
+import com.brickstemple.plugins.configureSecurity
 import com.brickstemple.plugins.configureSerialization
 import com.brickstemple.routes.productRoutes
+import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -12,6 +17,7 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import com.brickstemple.routes.authRoutes
 
 /**
  * Integration tests for Product API endpoints (GET, POST, PUT, DELETE)
@@ -19,18 +25,35 @@ import java.time.LocalDateTime
  */
 class ProductRoutesTest {
 
+    private suspend fun login(client: HttpClient, email: String, password: String): String {
+        val response = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email": "$email", "password": "$password"}""")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val json = response.bodyAsText()
+        val tokenResponse = kotlinx.serialization.json.Json.decodeFromString<TokenResponse>(json)
+        return tokenResponse.token.trim()
+    }
+
     private lateinit var fakeRepo: FakeProductRepository
+    private lateinit var userRepo: FakeUserRepository
 
     @BeforeTest
     fun setup() {
         fakeRepo = FakeProductRepository()
+        userRepo = FakeUserRepository()
     }
 
     @Test
     fun testGetAllProducts_emptyList() = testApplication {
         application {
             configureSerialization()
-            routing { productRoutes(fakeRepo) }
+            configureSecurity()
+            routing {
+                authRoutes(userRepo)
+                productRoutes(fakeRepo)
+            }
         }
 
         val response = client.get("/products")
@@ -40,12 +63,22 @@ class ProductRoutesTest {
 
     @Test
     fun testCreateProduct_success() = testApplication {
+
+        userRepo.create(UserDto(username = "admin", email = "admin@mail.com", password = "123456", role = "admin"))
+
         application {
             configureSerialization()
-            routing { productRoutes(fakeRepo) }
+            configureSecurity()
+            routing {
+                authRoutes(userRepo)
+                productRoutes(fakeRepo)
+            }
         }
 
+        val token = login(client, "admin@mail.com", "123456")
+
         val response = client.post("/products") {
+            header(HttpHeaders.Authorization, "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(
                 """
@@ -90,6 +123,7 @@ class ProductRoutesTest {
 
         application {
             configureSerialization()
+            configureSecurity()
             routing { productRoutes(fakeRepo) }
         }
 
@@ -100,6 +134,8 @@ class ProductRoutesTest {
 
     @Test
     fun testUpdateProduct_success() = testApplication {
+        userRepo.create(UserDto(username = "admin", email = "admin2@mail.com", password = "123456", role = "admin"))
+
         fakeRepo.create(
             ProductDto(
                 id = 1,
@@ -115,10 +151,17 @@ class ProductRoutesTest {
 
         application {
             configureSerialization()
-            routing { productRoutes(fakeRepo) }
+            configureSecurity()
+            routing {
+                authRoutes(userRepo)
+                productRoutes(fakeRepo)
+            }
         }
 
+        val token = login(client, "admin2@mail.com", "123456")
+
         val response = client.put("/products/1") {
+            header(HttpHeaders.Authorization, "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(
                 """
@@ -137,6 +180,8 @@ class ProductRoutesTest {
 
     @Test
     fun testDeleteProduct_success() = testApplication {
+        userRepo.create(UserDto(username = "admin", email = "admin3@mail.com", password = "123456", role = "admin"))
+
         fakeRepo.create(
             ProductDto(
                 id = 1,
@@ -152,10 +197,19 @@ class ProductRoutesTest {
 
         application {
             configureSerialization()
-            routing { productRoutes(fakeRepo) }
+            configureSecurity()
+            routing {
+                authRoutes(userRepo)
+                productRoutes(fakeRepo)
+            }
         }
 
-        val response = client.delete("/products/1")
+        val token = login(client, "admin3@mail.com", "123456")
+
+        val response = client.delete("/products/1") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+
         assertEquals(HttpStatusCode.NoContent, response.status)
     }
 }
