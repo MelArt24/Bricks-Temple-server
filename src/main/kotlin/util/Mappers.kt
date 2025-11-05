@@ -1,7 +1,7 @@
 package com.brickstemple.util
 
 import com.brickstemple.models.Products
-import com.brickstemple.dto.ProductDto
+import com.brickstemple.dto.products.ProductDto
 import org.jetbrains.exposed.sql.ResultRow
 
 fun ResultRow.toProductDto() = ProductDto(

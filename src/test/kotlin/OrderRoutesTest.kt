@@ -1,8 +1,8 @@
 package com.brickstemple
 
 import TokenResponse
-import com.brickstemple.dto.OrderDto
-import com.brickstemple.dto.UserDto
+import com.brickstemple.dto.orders.OrderDto
+import com.brickstemple.dto.users.UserDto
 import com.brickstemple.fakeRepositories.FakeOrderRepository
 import com.brickstemple.fakeRepositories.FakeUserRepository
 import com.brickstemple.models.OrderStatus

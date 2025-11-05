@@ -1,7 +1,7 @@
 package com.brickstemple
 
 import TokenResponse
-import com.brickstemple.dto.UserDto
+import com.brickstemple.dto.users.UserDto
 import com.brickstemple.fakeRepositories.FakeUserRepository
 import io.ktor.client.*
 import io.ktor.client.request.*

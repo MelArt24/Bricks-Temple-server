@@ -1,7 +1,7 @@
 package com.brickstemple.repositories
 
-import com.brickstemple.dto.UserDto
-import com.brickstemple.dto.UserResponseDto
+import com.brickstemple.dto.users.UserDto
+import com.brickstemple.dto.users.UserResponseDto
 import com.brickstemple.models.Users
 import com.brickstemple.util.HashUtil
 import org.jetbrains.exposed.sql.*

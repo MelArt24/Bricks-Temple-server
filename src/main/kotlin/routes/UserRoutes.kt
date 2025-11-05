@@ -1,8 +1,8 @@
 package com.brickstemple.routes
 
 import com.brickstemple.dto.ErrorResponse
-import com.brickstemple.dto.UserDto
-import com.brickstemple.dto.UserResponseDto
+import com.brickstemple.dto.users.UserDto
+import com.brickstemple.dto.users.UserResponseDto
 import com.brickstemple.repositories.UserRepository
 import io.ktor.http.*
 import io.ktor.server.request.*

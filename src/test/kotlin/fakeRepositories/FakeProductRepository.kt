@@ -1,7 +1,7 @@
 package com.brickstemple.fakeRepositories
 
-import com.brickstemple.dto.ProductDto
-import com.brickstemple.dto.ProductUpdateDto
+import com.brickstemple.dto.products.ProductDto
+import com.brickstemple.dto.products.ProductUpdateDto
 import com.brickstemple.repositories.ProductRepository
 import java.time.LocalDateTime
 

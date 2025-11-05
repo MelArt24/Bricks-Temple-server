@@ -2,14 +2,13 @@ package com.brickstemple.routes
 
 import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse
-import com.brickstemple.dto.ProductDto
-import com.brickstemple.dto.ProductUpdateDto
+import com.brickstemple.dto.products.ProductDto
+import com.brickstemple.dto.products.ProductUpdateDto
 import com.brickstemple.repositories.ProductRepository
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 
 
 fun Route.productRoutes(repo: ProductRepository) {

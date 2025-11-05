@@ -1,6 +1,6 @@
 package com.brickstemple.repositories
 
-import com.brickstemple.dto.OrderDto
+import com.brickstemple.dto.orders.OrderDto
 import com.brickstemple.models.OrderStatus
 import com.brickstemple.models.Orders
 import org.jetbrains.exposed.sql.*

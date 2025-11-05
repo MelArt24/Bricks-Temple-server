@@ -1,15 +1,14 @@
-package com.brickstemple.dto
+package com.brickstemple.dto.users
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 
 @Serializable
-data class UserDto(
-    val id: Int? = null,
+data class UserResponseDto(
+    val id: Int,
     val username: String,
     val email: String,
-    val password: String,
-    val role: String = "user",
+    val role: String,
     @Contextual val createdAt: LocalDateTime? = null
 )

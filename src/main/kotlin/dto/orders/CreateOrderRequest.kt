@@ -1,4 +1,4 @@
-package com.brickstemple.dto
+package com.brickstemple.dto.orders
 
 import kotlinx.serialization.Serializable
 

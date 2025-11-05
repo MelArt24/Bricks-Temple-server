@@ -1,7 +1,7 @@
 package com.brickstemple.repositories
 
-import com.brickstemple.dto.ProductDto
-import com.brickstemple.dto.ProductUpdateDto
+import com.brickstemple.dto.products.ProductDto
+import com.brickstemple.dto.products.ProductUpdateDto
 import com.brickstemple.models.Products
 import com.brickstemple.util.toProductDto
 import org.jetbrains.exposed.sql.*

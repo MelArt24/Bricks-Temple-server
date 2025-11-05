@@ -1,6 +1,9 @@
 package com.brickstemple.routes
 
 import com.brickstemple.dto.*
+import com.brickstemple.dto.users.LoginRequest
+import com.brickstemple.dto.users.RegisterRequest
+import com.brickstemple.dto.users.UserDto
 import com.brickstemple.repositories.UserRepository
 import com.brickstemple.security.JwtConfig
 import com.brickstemple.util.HashUtil

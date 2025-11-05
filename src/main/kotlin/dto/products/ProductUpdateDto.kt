@@ -1,4 +1,4 @@
-package com.brickstemple.dto
+package com.brickstemple.dto.products
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Contextual

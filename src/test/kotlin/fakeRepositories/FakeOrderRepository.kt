@@ -1,6 +1,6 @@
 package com.brickstemple.fakeRepositories
 
-import com.brickstemple.dto.OrderDto
+import com.brickstemple.dto.orders.OrderDto
 import com.brickstemple.models.OrderStatus
 import com.brickstemple.repositories.OrderRepository
 import java.time.LocalDateTime

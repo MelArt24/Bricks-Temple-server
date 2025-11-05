@@ -8,7 +8,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlin.test.*
-import com.brickstemple.dto.UserDto
+import com.brickstemple.dto.users.UserDto
 import io.ktor.server.routing.*
 
 

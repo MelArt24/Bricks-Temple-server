@@ -1,4 +1,4 @@
-package com.brickstemple.dto
+package com.brickstemple.dto.orders
 
 import com.brickstemple.models.OrderStatus
 import kotlinx.serialization.Contextual

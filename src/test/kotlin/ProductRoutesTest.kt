@@ -1,6 +1,6 @@
 package com.brickstemple
 
-import com.brickstemple.dto.ProductDto
+import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.fakeRepositories.FakeProductRepository
 import com.brickstemple.plugins.configureSerialization
 import com.brickstemple.routes.productRoutes

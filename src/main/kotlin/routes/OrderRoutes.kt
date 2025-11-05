@@ -1,9 +1,9 @@
 package com.brickstemple.routes
 
-import com.brickstemple.dto.CreateOrderRequest
+import com.brickstemple.dto.orders.CreateOrderRequest
 import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse
-import com.brickstemple.dto.OrderDto
+import com.brickstemple.dto.orders.OrderDto
 import com.brickstemple.models.OrderStatus
 import com.brickstemple.repositories.OrderRepository
 import io.ktor.http.*
