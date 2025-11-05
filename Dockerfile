@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 RUN gradle build -x test --no-daemon
 
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-jdk
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 
