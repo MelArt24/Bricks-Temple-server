@@ -23,7 +23,7 @@ open class OrderRepository {
     }
 
     open fun getById(id: Int): OrderDto? = transaction {
-        Orders.selectAll().where { Orders.id eq id }.singleOrNull()?.let {
+        Orders.select { Orders.id eq id }.singleOrNull()?.let {
             OrderDto(
                 id = it[Orders.id],
                 userId = it[Orders.userId],

@@ -2,8 +2,11 @@ package com.brickstemple
 
 import TokenResponse
 import com.brickstemple.dto.orders.OrderDto
+import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.users.UserDto
+import com.brickstemple.fakeRepositories.FakeOrderItemRepository
 import com.brickstemple.fakeRepositories.FakeOrderRepository
+import com.brickstemple.fakeRepositories.FakeProductRepository
 import com.brickstemple.fakeRepositories.FakeUserRepository
 import com.brickstemple.models.OrderStatus
 import com.brickstemple.plugins.configureSecurity
@@ -33,19 +36,31 @@ class OrderRoutesTest {
     }
 
     @Test
-    fun `POST orders - user can create order`() = testApplication {
+    fun `POST orders - user can create order with items`() = testApplication {
         val userRepo = FakeUserRepository()
         val orderRepo = FakeOrderRepository()
+        val orderItemsRepo = FakeOrderItemRepository()
+        val productRepo = FakeProductRepository()
 
-        // створюємо юзера
         userRepo.create(UserDto(username = "test", email = "test@mail.com", password = "123456"))
+
+        val productId = productRepo.create(
+            ProductDto(
+                name = "Test Product",
+                category = "test-category",
+                number = 1,
+                condition = "new",
+                price = BigDecimal("50.00"),
+                type = "lego"
+            )
+        )
 
         application {
             configureSerialization()
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                orderRoutes(orderRepo)
+                orderRoutes(orderRepo, orderItemsRepo, productRepo)
             }
         }
 
@@ -54,7 +69,14 @@ class OrderRoutesTest {
         val response = client.post("/orders") {
             header(HttpHeaders.Authorization, "Bearer $token")
             contentType(ContentType.Application.Json)
-            setBody("""{ "totalPrice": 199.99 }""")
+            setBody("""
+                {
+                    "totalPrice": 100.0,
+                    "items": [
+                        { "productId": 1, "quantity": 2, "priceAtPurchase": 50.0 }
+                    ]
+                }
+            """.trimIndent())
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
@@ -64,16 +86,21 @@ class OrderRoutesTest {
     @Test
     fun `POST orders - no token returns 401`() = testApplication {
         val orderRepo = FakeOrderRepository()
+        val itemsRepo = FakeOrderItemRepository()
+        val productRepo = FakeProductRepository()
 
         application {
             configureSerialization()
             configureSecurity()
-            routing { orderRoutes(orderRepo) }
+            routing { orderRoutes(orderRepo, itemsRepo, productRepo) }
         }
 
         val response = client.post("/orders") {
             contentType(ContentType.Application.Json)
-            setBody("""{ "totalPrice": 100.0 }""")
+            setBody("""{
+                "totalPrice": 150.0,
+                "items": [ { "productId": 2, "quantity": 1, "priceAtPurchase": 150.0 } ]
+            }""")
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
@@ -83,6 +110,8 @@ class OrderRoutesTest {
     fun `GET orders - only admin can view all`() = testApplication {
         val userRepo = FakeUserRepository()
         val orderRepo = FakeOrderRepository()
+        val itemsRepo = FakeOrderItemRepository()
+        val productRepo = FakeProductRepository()
 
         val adminId = userRepo.create(
             UserDto(username = "admin", email = "admin@mail.com", password = "123456", role = "admin")
@@ -103,7 +132,7 @@ class OrderRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                orderRoutes(orderRepo)
+                orderRoutes(orderRepo, itemsRepo, productRepo)
             }
         }
 
@@ -130,6 +159,8 @@ class OrderRoutesTest {
     fun `GET orders - user sees only own`() = testApplication {
         val users = FakeUserRepository()
         val orders = FakeOrderRepository()
+        val items = FakeOrderItemRepository()
+        val productRepo = FakeProductRepository()
 
         val userId = users.create(UserDto(username = "user1", email = "u1@mail.com", password = "123456"))
         val otherId = users.create(UserDto(username ="user2", email = "u2@mail.com", password = "123456"))
@@ -151,7 +182,7 @@ class OrderRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                orderRoutes(orders)
+                orderRoutes(orders, items, productRepo)
             }
         }
 
@@ -172,6 +203,8 @@ class OrderRoutesTest {
     fun `GET orders id - user cannot view others`() = testApplication {
         val users = FakeUserRepository()
         val orders = FakeOrderRepository()
+        val items = FakeOrderItemRepository()
+        val productRepo = FakeProductRepository()
 
         users.create(UserDto(username = "user1", email = "u1@mail.com", password = "123456"))
         val otherId = users.create(UserDto(username ="user2", email = "u2@mail.com", password = "123456"))
@@ -185,7 +218,7 @@ class OrderRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                orderRoutes(orders)
+                orderRoutes(orders, items, productRepo)
             }
         }
 
@@ -201,6 +234,8 @@ class OrderRoutesTest {
     fun `PUT orders status - admin can update`() = testApplication {
         val users = FakeUserRepository()
         val orders = FakeOrderRepository()
+        val items = FakeOrderItemRepository()
+        val productRepo = FakeProductRepository()
 
         users.create(UserDto(username = "admin", email = "ad@mail.com", password = "123456", role = "admin"))
         val userId = users.create(UserDto(username = "user", email = "us@mail.com", password = "123456"))
@@ -214,7 +249,7 @@ class OrderRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                orderRoutes(orders)
+                orderRoutes(orders, items, productRepo)
             }
         }
 

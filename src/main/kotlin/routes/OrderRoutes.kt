@@ -1,11 +1,15 @@
 package com.brickstemple.routes
 
+import OrderWithItemsResponse
 import com.brickstemple.dto.orders.CreateOrderRequest
 import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse
+import com.brickstemple.dto.order_items.OrderItemDto
 import com.brickstemple.dto.orders.OrderDto
 import com.brickstemple.models.OrderStatus
+import com.brickstemple.repositories.OrderItemRepository
 import com.brickstemple.repositories.OrderRepository
+import com.brickstemple.repositories.ProductRepository
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -13,7 +17,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.orderRoutes(repo: OrderRepository) {
+fun Route.orderRoutes(
+    orderRepo: OrderRepository,
+    orderItemRepo: OrderItemRepository,
+    productRepo: ProductRepository
+) {
 
     route("/orders") {
 
@@ -25,15 +33,56 @@ fun Route.orderRoutes(repo: OrderRepository) {
 
                     val userId = principal.payload.getClaim("id").asInt()
 
-                    val body = call.receive<CreateOrderRequest>()
+                    val body = try {
+                        call.receive<CreateOrderRequest>()
+                    } catch (e: Exception) {
+                        return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request", e.message))
+                    }
 
-                    val newOrderId = repo.create(
+                    if (body.items.isEmpty()) {
+                        return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Order must contain at least 1 item"))
+                    }
+
+                    var realTotal = 0.toBigDecimal()
+
+                    for (item in body.items) {
+                        val product = productRepo.getById(item.productId)
+                            ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Product ${item.productId} not found"))
+
+                        val subtotal = product.price * item.quantity.toBigDecimal()
+                        realTotal += subtotal
+                    }
+
+                    if (realTotal.compareTo(body.totalPrice.toBigDecimal()) != 0) {
+                        return@post call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse(
+                                "Total price mismatch",
+                                "Expected $realTotal, but got ${body.totalPrice}"
+                            )
+                        )
+                    }
+
+                    val newOrderId = orderRepo.create(
                         OrderDto(
                             userId = userId,
                             totalPrice = body.totalPrice.toBigDecimal(),
                             status = OrderStatus.PENDING
                         )
                     )
+
+                    for (item in body.items) {
+                        val product = productRepo.getById(item.productId)!!
+
+                        orderItemRepo.create(
+                            OrderItemDto(
+                                orderId = newOrderId,
+                                productId = item.productId,
+                                quantity = item.quantity,
+                                priceAtPurchase = product.price
+                            )
+                        )
+                    }
 
                     call.respond(
                         HttpStatusCode.Created,
@@ -54,9 +103,7 @@ fun Route.orderRoutes(repo: OrderRepository) {
                 if (role != "admin") {
                     return@get call.respond(HttpStatusCode.Forbidden, ErrorResponse("Admins only"))
                 }
-
-                val orders = repo.getAll()
-                call.respond(HttpStatusCode.OK, orders)
+                call.respond(HttpStatusCode.OK, orderRepo.getAll())
             }
         }
 
@@ -65,28 +112,45 @@ fun Route.orderRoutes(repo: OrderRepository) {
                 val principal = call.principal<JWTPrincipal>()!!
                 val userId = principal.payload.getClaim("id").asInt()
 
-                val orders = repo.getAll().filter { it.userId == userId }
-                call.respond(HttpStatusCode.OK, orders)
+                val myOrders = orderRepo.getAll().filter { it.userId == userId }
+
+                if (myOrders.isEmpty()) {
+                    return@get call.respond(
+                        HttpStatusCode.OK,
+                        ErrorResponse("No orders yet")
+                    )
+                }
+
+                call.respond(HttpStatusCode.OK, myOrders )
             }
         }
 
         authenticate("auth-jwt") {
             get("/{id}") {
-                val id = call.parameters["id"]?.toIntOrNull()
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid id"))
+                try {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid id"))
 
-                val principal = call.principal<JWTPrincipal>()!!
-                val userId = principal.payload.getClaim("id").asInt()
-                val role = principal.payload.getClaim("role").asString()
+                    val principal = call.principal<JWTPrincipal>()!!
+                    val userId = principal.payload.getClaim("id").asInt()
+                    val role = principal.payload.getClaim("role").asString()
 
-                val order = repo.getById(id)
-                    ?: return@get call.respond(HttpStatusCode.NotFound, ErrorResponse("Order not found"))
+                    val order = orderRepo.getById(id)
+                        ?: return@get call.respond(HttpStatusCode.NotFound, ErrorResponse("Order not found"))
 
-                if (order.userId != userId && role != "admin") {
-                    return@get call.respond(HttpStatusCode.Forbidden, ErrorResponse("Not your order"))
+                    if (order.userId != userId && role != "admin") {
+                        return@get call.respond(HttpStatusCode.Forbidden, ErrorResponse("Not your order"))
+                    }
+
+                    val items = orderItemRepo.getByOrder(id)
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        OrderWithItemsResponse(order, items)
+                    )
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Server error", e.message))
                 }
-
-                call.respond(HttpStatusCode.OK, order)
             }
         }
 
@@ -114,7 +178,7 @@ fun Route.orderRoutes(repo: OrderRepository) {
                     )
                 }
 
-                val updated = repo.updateStatus(id, newStatus)
+                val updated = orderRepo.updateStatus(id, newStatus)
                 if (updated) call.respond(HttpStatusCode.OK, mapOf("message" to "Status updated"))
                 else call.respond(HttpStatusCode.NotFound, ErrorResponse("Order not found"))
             }

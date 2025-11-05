@@ -9,6 +9,8 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.auth.*
+
 
 
 fun Route.productRoutes(repo: ProductRepository) {
@@ -56,96 +58,98 @@ fun Route.productRoutes(repo: ProductRepository) {
             }
         }
 
-        post {
-            try {
-                val body = call.receive<ProductDto>()
+        authenticate("auth-jwt") {
+            post {
+                try {
+                    val body = call.receive<ProductDto>()
 
-                if (body.name.isBlank() || body.price == null) {
-                    return@post call.respond(
+                    if (body.name.isBlank() || body.price == null) {
+                        return@post call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse("Missing required fields: name or price")
+                        )
+                    }
+
+                    val newId = repo.create(body)
+
+                    if (newId > 0) {
+                        call.respond(HttpStatusCode.Created, CreatedResponse("Product created successfully", newId))
+
+                    } else {
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            ErrorResponse("Failed to create product")
+                        )
+                    }
+
+                } catch (e: ContentTransformationException) {
+                    call.respond(
                         HttpStatusCode.BadRequest,
-                        ErrorResponse("Missing required fields: name or price")
+                        ErrorResponse("Invalid JSON: ${e.message}")
                     )
-                }
-
-                val newId = repo.create(body)
-
-                if (newId > 0) {
-                    call.respond(HttpStatusCode.Created, CreatedResponse("Product created successfully", newId))
-
-                } else {
+                } catch (e: Exception) {
                     call.respond(
                         HttpStatusCode.InternalServerError,
-                        ErrorResponse("Failed to create product")
+                        ErrorResponse("Unexpected error: ${e.message}")
                     )
                 }
-
-            } catch (e: ContentTransformationException) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    ErrorResponse("Invalid JSON: ${e.message}")
-                )
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    ErrorResponse("Unexpected error: ${e.message}")
-                )
             }
-        }
 
 
-        put("{id}") {
-            val id = call.parameters["id"]?.toIntOrNull()
-                ?: return@put call.respond(
-                    HttpStatusCode.BadRequest,
-                    ErrorResponse("Invalid or missing ID")
-                )
+            put("{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@put call.respond(
+                        HttpStatusCode.BadRequest,
+                        ErrorResponse("Invalid or missing ID")
+                    )
 
-            try {
-                val product = call.receive<ProductUpdateDto>()
-                val updated = repo.update(id, product)
-                if (updated) {
-                    call.respond(HttpStatusCode.OK, mapOf("message" to "Updated successfully"))
-                } else {
+                try {
+                    val product = call.receive<ProductUpdateDto>()
+                    val updated = repo.update(id, product)
+                    if (updated) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Updated successfully"))
+                    } else {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            ErrorResponse("Product with id=$id not found")
+                        )
+                    }
+                } catch (e: ContentTransformationException) {
                     call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Product with id=$id not found")
+                        HttpStatusCode.BadRequest,
+                        ErrorResponse("Invalid JSON: ${e.message}")
+                    )
+                } catch (e: Exception) {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        ErrorResponse("Unexpected error: ${e.message}")
                     )
                 }
-            } catch (e: ContentTransformationException) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    ErrorResponse("Invalid JSON: ${e.message}")
-                )
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    ErrorResponse("Unexpected error: ${e.message}")
-                )
             }
-        }
 
-        delete("{id}") {
-            val id = call.parameters["id"]?.toIntOrNull()
-                ?: return@delete call.respond(
-                    HttpStatusCode.BadRequest,
-                    ErrorResponse("Invalid or missing ID")
-                )
+            delete("{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(
+                        HttpStatusCode.BadRequest,
+                        ErrorResponse("Invalid or missing ID")
+                    )
 
-            try {
-                val ok = repo.delete(id)
-                if (ok) {
-                    call.respond(HttpStatusCode.NoContent)
-                } else {
+                try {
+                    val ok = repo.delete(id)
+                    if (ok) {
+                        call.respond(HttpStatusCode.NoContent)
+                    } else {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            ErrorResponse("Product with id=$id not found")
+                        )
+                    }
+                } catch (e: Exception) {
                     call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Product with id=$id not found")
+                        HttpStatusCode.InternalServerError,
+                        ErrorResponse("Unexpected error: ${e.message}")
                     )
                 }
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    ErrorResponse("Unexpected error: ${e.message}")
-                )
             }
         }
     }
