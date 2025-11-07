@@ -1,21 +1,28 @@
 package com.brickstemple.routes
 
 import WishlistResponse
+import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse
+import com.brickstemple.dto.order_items.OrderItemDto
+import com.brickstemple.dto.orders.OrderDto
 import com.brickstemple.dto.wishlist.WishlistDto
-import com.brickstemple.repositories.WishlistItemRepository
-import com.brickstemple.repositories.WishlistRepository
+import com.brickstemple.models.OrderStatus
+import com.brickstemple.repositories.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 fun Route.wishlistRoutes(
     wishlistRepo: WishlistRepository,
-    wishlistItemRepo: WishlistItemRepository
+    wishlistItemRepo: WishlistItemRepository,
+    orderRepo: OrderRepository,
+    orderItemRepo: OrderItemRepository,
+    productRepo: ProductRepository
 ) {
     route("/wishlist") {
 
@@ -109,6 +116,55 @@ fun Route.wishlistRoutes(
 
                 wishlistItemRepo.updateQuantity(itemId, newQuantity)
                 call.respond(HttpStatusCode.OK, mapOf("message" to "Quantity updated"))
+            }
+
+            post("/checkout") {
+                val principal = call.principal<JWTPrincipal>()
+                    ?: return@post call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Not authorized"))
+
+                val userId = principal.payload.getClaim("id").asInt()
+
+                val wishlist = wishlistRepo.getByUser(userId)
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Wishlist not found"))
+
+                val items = wishlistItemRepo.getByWishlist(wishlist.id)
+                if (items.isEmpty()) {
+                    return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Wishlist is empty"))
+                }
+
+                var totalPrice = BigDecimal.ZERO
+                for (item in items) {
+                    val product = productRepo.getById(item.productId)
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Product ${item.productId} not found"))
+                    totalPrice += product.price * item.quantity.toBigDecimal()
+                }
+
+                val orderId = orderRepo.create(
+                    OrderDto(
+                        userId = userId,
+                        status = OrderStatus.PENDING,
+                        totalPrice = totalPrice
+                    )
+                )
+
+                for (item in items) {
+                    val product = productRepo.getById(item.productId)!!
+                    orderItemRepo.create(
+                        OrderItemDto(
+                            orderId = orderId,
+                            productId = item.productId,
+                            quantity = item.quantity,
+                            priceAtPurchase = product.price
+                        )
+                    )
+                }
+
+                wishlistItemRepo.clearWishlist(wishlist.id)
+
+                call.respond(
+                    HttpStatusCode.Created,
+                    CreatedResponse("Wishlist converted to order", orderId)
+                )
             }
         }
     }

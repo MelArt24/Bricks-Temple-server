@@ -1,10 +1,8 @@
-package com.brickstemple.integrationTests
+package integrationTests
 
-import integrationTests.TokenResponse
+import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.users.UserDto
-import com.brickstemple.fakeRepositories.FakeWishlistRepository
-import com.brickstemple.fakeRepositories.FakeWishlistItemRepository
-import com.brickstemple.fakeRepositories.FakeUserRepository
+import com.brickstemple.fakeRepositories.*
 import com.brickstemple.plugins.configureSecurity
 import com.brickstemple.plugins.configureSerialization
 import com.brickstemple.routes.authRoutes
@@ -17,6 +15,8 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.*
+import java.math.BigDecimal
+import java.time.LocalDateTime
 
 
 class WishlistRoutesTest {
@@ -35,8 +35,6 @@ class WishlistRoutesTest {
     @Test
     fun `GET wishlist - empty returns message`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(
             UserDto(
@@ -51,7 +49,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -68,8 +66,6 @@ class WishlistRoutesTest {
     @Test
     fun `POST wishlist add - creates wishlist and adds first item`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(
             UserDto(
@@ -84,7 +80,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -109,8 +105,6 @@ class WishlistRoutesTest {
     @Test
     fun `POST wishlist add - adding same product increments quantity`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(
             UserDto(
@@ -125,7 +119,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -161,8 +155,6 @@ class WishlistRoutesTest {
     @Test
     fun `POST wishlist add - 400 when missing productId`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(
             UserDto(
@@ -177,7 +169,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -195,8 +187,6 @@ class WishlistRoutesTest {
     @Test
     fun `POST wishlist add - 401 when no token`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(
             UserDto(
@@ -211,7 +201,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -226,8 +216,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist remove - quantity decreases when more than 1`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(UserDto(username = "test4", email = "test4@mail.com", password = "123456"))
 
@@ -236,7 +224,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -271,8 +259,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist remove - item deleted when quantity becomes zero`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(UserDto(username = "test5", email = "test5@mail.com", password = "123456"))
 
@@ -281,7 +267,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -313,8 +299,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist remove - 404 if item not found`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(UserDto(username = "test6", email = "test6@mail.com", password = "123456"))
 
@@ -323,7 +307,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -347,8 +331,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist remove - 403 if item belongs to another user`() = testApplication {
         val users = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val itemsRepo = FakeWishlistItemRepository()
 
         users.create(UserDto(username = "u1", email = "u1@mail.com", password = "pass"))
         users.create(UserDto(username = "u2", email = "u2@mail.com", password = "pass"))
@@ -358,7 +340,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                wishlistRoutes(wishlistRepo, itemsRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -389,8 +371,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist remove - 400 if id is not integer`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(UserDto(username = "test7", email = "test7@mail.com", password = "123456"))
 
@@ -399,7 +379,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -414,8 +394,6 @@ class WishlistRoutesTest {
 
     @Test
     fun `DELETE wishlist remove - 401 if no token`() = testApplication {
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
         val users = FakeUserRepository()
 
         application {
@@ -423,7 +401,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -434,8 +412,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist clear - removes all items`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(UserDto(username = "clearUser", email = "clear@mail.com", password = "123456"))
 
@@ -444,7 +420,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -475,8 +451,6 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist clear - when already empty returns OK`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         userRepo.create(UserDto(username = "emptyUser", email = "empty@mail.com", password = "123456"))
 
@@ -485,7 +459,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -503,15 +477,13 @@ class WishlistRoutesTest {
     @Test
     fun `DELETE wishlist clear - 401 if no token`() = testApplication {
         val userRepo = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val wishlistItemRepo = FakeWishlistItemRepository()
 
         application {
             configureSerialization()
             configureSecurity()
             routing {
                 authRoutes(userRepo)
-                wishlistRoutes(wishlistRepo, wishlistItemRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -523,8 +495,6 @@ class WishlistRoutesTest {
     @Test
     fun `PUT wishlist item id - updates quantity successfully`() = testApplication {
         val users = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val itemsRepo = FakeWishlistItemRepository()
 
         users.create(UserDto(username = "user1", email = "put@mail.com", password = "123456"))
 
@@ -533,7 +503,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                wishlistRoutes(wishlistRepo, itemsRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -570,8 +540,6 @@ class WishlistRoutesTest {
     @Test
     fun `PUT wishlist item id - 400 if quantity is zero or negative`() = testApplication {
         val users = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val itemsRepo = FakeWishlistItemRepository()
 
         users.create(UserDto(username = "user2", email = "neg@mail.com", password = "123456"))
 
@@ -580,7 +548,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                wishlistRoutes(wishlistRepo, itemsRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -613,8 +581,6 @@ class WishlistRoutesTest {
     @Test
     fun `PUT wishlist item id - 404 if item not found`() = testApplication {
         val users = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val itemsRepo = FakeWishlistItemRepository()
 
         users.create(UserDto(username = "user3", email = "notfound@mail.com", password = "123456"))
 
@@ -623,7 +589,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                wishlistRoutes(wishlistRepo, itemsRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -649,8 +615,6 @@ class WishlistRoutesTest {
     @Test
     fun `PUT wishlist item id - 403 or 404 if item belongs to another user`() = testApplication {
         val users = FakeUserRepository()
-        val wishlistRepo = FakeWishlistRepository()
-        val itemsRepo = FakeWishlistItemRepository()
 
         users.create(UserDto(username = "u1", email = "owner@mail.com", password = "pass"))
         users.create(UserDto(username = "u2", email = "notowner@mail.com", password = "pass"))
@@ -660,7 +624,7 @@ class WishlistRoutesTest {
             configureSecurity()
             routing {
                 authRoutes(users)
-                wishlistRoutes(wishlistRepo, itemsRepo)
+                wishlistRoutes(FakeWishlistRepository(), FakeWishlistItemRepository(), FakeOrderRepository(), FakeOrderItemRepository(), FakeProductRepository())
             }
         }
 
@@ -698,4 +662,89 @@ class WishlistRoutesTest {
         )
     }
 
+    @Test
+    fun `POST wishlist checkout - should convert wishlist to order`() = testApplication {
+        val userRepo = FakeUserRepository()
+        val wishlistRepo = FakeWishlistRepository()
+        val wishlistItemRepo = FakeWishlistItemRepository()
+        val productRepo = FakeProductRepository()
+        val orderRepo = FakeOrderRepository()
+
+        val userId = userRepo.create(
+            UserDto(username = "user", email = "user@mail.com", password = "123456", role = "user")
+        )
+
+        val productId1 = productRepo.create(
+            ProductDto(
+                id = 1,
+                name = "Millennium Falcon",
+                category = "Star Wars",
+                number = 75192,
+                details = 7541,
+                minifigures = 8,
+                age = "18+",
+                year = 2023,
+                size = "21x84x56",
+                condition = "New",
+                price = BigDecimal("10.00"),
+                createdAt = LocalDateTime.now(),
+                image = "https://example.com/falcon.jpg",
+                description = "Ultimate Collector Series",
+                type = "set",
+                keywords = "falcon;star wars;spaceship"
+            )
+        )
+
+        val productId2 = productRepo.create(
+            ProductDto(
+                id = 2,
+                name = "Millennium Falcon",
+                category = "Star Wars",
+                number = 75192,
+                details = 7541,
+                minifigures = 8,
+                age = "18+",
+                year = 2023,
+                size = "21x84x56",
+                condition = "New",
+                price = BigDecimal("5.00"),
+                createdAt = LocalDateTime.now(),
+                image = "https://example.com/falcon.jpg",
+                description = "Ultimate Collector Series",
+                type = "set",
+                keywords = "falcon;star wars;spaceship"
+            )
+        )
+
+        val wishlistId = wishlistRepo.create(userId)
+        wishlistItemRepo.addOrIncrement(wishlistId, productId1)
+        wishlistItemRepo.addOrIncrement(wishlistId, productId2)
+
+        application {
+            configureSerialization()
+            configureSecurity()
+            routing {
+                authRoutes(userRepo)
+                wishlistRoutes(wishlistRepo, wishlistItemRepo, orderRepo, FakeOrderItemRepository(), productRepo)
+            }
+        }
+
+        val token = login(client, "user@mail.com", "123456")
+
+        val response = client.post("/wishlist/checkout") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Wishlist converted to order"))
+
+        val wishlistItemsAfter = wishlistItemRepo.getByWishlist(wishlistId)
+        assertTrue(wishlistItemsAfter.isEmpty())
+
+        val orders = orderRepo.getAll()
+        assertEquals(1, orders.size)
+        assertEquals(userId, orders[0].userId)
+        assertEquals(BigDecimal("15.00"), orders[0].totalPrice)
+    }
 }

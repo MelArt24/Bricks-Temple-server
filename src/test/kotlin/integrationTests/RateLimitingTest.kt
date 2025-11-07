@@ -1,3 +1,5 @@
+package integrationTests
+
 import com.brickstemple.plugins.configureRateLimiting
 import com.brickstemple.plugins.configureSerialization
 import io.ktor.client.request.*

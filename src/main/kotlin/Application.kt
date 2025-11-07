@@ -37,7 +37,7 @@ fun Application.module(
         authenticate("auth-jwt") {
             userRoutes(userRepo)
             orderRoutes(OrderRepository(), OrderItemRepository(), ProductRepository())
-            wishlistRoutes(WishlistRepository(), WishlistItemRepository())
+            wishlistRoutes(WishlistRepository(), WishlistItemRepository(), OrderRepository(), OrderItemRepository(), ProductRepository())
         }
 
         productRoutes(productRepo)
