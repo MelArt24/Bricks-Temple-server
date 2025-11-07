@@ -1,15 +1,9 @@
 package com.brickstemple
 
 import com.brickstemple.plugins.configureSecurity
-import com.brickstemple.repositories.ProductRepository
 import com.brickstemple.plugins.configureSerialization
-import com.brickstemple.repositories.OrderItemRepository
-import com.brickstemple.repositories.OrderRepository
-import com.brickstemple.repositories.UserRepository
-import com.brickstemple.routes.authRoutes
-import com.brickstemple.routes.orderRoutes
-import com.brickstemple.routes.productRoutes
-import com.brickstemple.routes.userRoutes
+import com.brickstemple.repositories.*
+import com.brickstemple.routes.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.application.*
@@ -41,6 +35,7 @@ fun Application.module(
         authenticate("auth-jwt") {
             userRoutes(userRepo)
             orderRoutes(OrderRepository(), OrderItemRepository(), ProductRepository())
+            wishlistRoutes(WishlistRepository(), WishlistItemRepository())
         }
 
         productRoutes(productRepo)

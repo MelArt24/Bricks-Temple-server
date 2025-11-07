@@ -1,4 +1,5 @@
-import com.brickstemple.dto.order_items.OrderItemDto
+package com.brickstemple.dto.order_items
+
 import com.brickstemple.dto.orders.OrderDto
 import kotlinx.serialization.Serializable
 

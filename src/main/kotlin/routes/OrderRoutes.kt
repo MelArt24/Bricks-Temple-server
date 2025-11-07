@@ -1,6 +1,6 @@
 package com.brickstemple.routes
 
-import OrderWithItemsResponse
+import com.brickstemple.dto.order_items.OrderWithItemsResponse
 import com.brickstemple.dto.orders.CreateOrderRequest
 import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse

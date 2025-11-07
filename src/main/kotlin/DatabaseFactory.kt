@@ -1,9 +1,6 @@
 package com.brickstemple
 
-import com.brickstemple.models.OrderItems
-import com.brickstemple.models.Orders
-import com.brickstemple.models.Products
-import com.brickstemple.models.Users
+import com.brickstemple.models.*
 import io.ktor.server.application.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -38,5 +35,7 @@ fun Application.configureDatabase() {
         SchemaUtils.create(Users)
         SchemaUtils.create(Orders)
         SchemaUtils.create(OrderItems)
+        SchemaUtils.create(Wishlists)
+        SchemaUtils.create(WishlistItems)
     }
 }
