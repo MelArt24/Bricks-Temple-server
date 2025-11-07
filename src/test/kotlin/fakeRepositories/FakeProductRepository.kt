@@ -54,4 +54,13 @@ class FakeProductRepository : ProductRepository() {
     }
 
     override fun delete(id: Int): Boolean = products.removeIf { it.id == id }
+
+    override fun count(): Long = products.size.toLong()
+
+    override fun getPaged(page: Int, limit: Int): List<ProductDto> {
+        val from = (page - 1) * limit
+        if (from >= products.size) return emptyList()
+        return products.drop(from).take(limit)
+    }
+
 }

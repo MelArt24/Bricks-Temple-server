@@ -6,6 +6,7 @@ import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse
 import com.brickstemple.dto.order_items.OrderItemDto
 import com.brickstemple.dto.orders.OrderDto
+import com.brickstemple.dto.products.PagedResponse
 import com.brickstemple.models.OrderStatus
 import com.brickstemple.repositories.OrderItemRepository
 import com.brickstemple.repositories.OrderRepository
@@ -103,7 +104,22 @@ fun Route.orderRoutes(
                 if (role != "admin") {
                     return@get call.respond(HttpStatusCode.Forbidden, ErrorResponse("Admins only"))
                 }
-                call.respond(HttpStatusCode.OK, orderRepo.getAll())
+
+                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val offset = (page - 1) * limit
+
+                val (orders, total) = orderRepo.getPaged(offset, limit)
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    PagedResponse(
+                        page = page,
+                        limit = limit,
+                        total = total,
+                        data = orders
+                    )
+                )
             }
         }
 
@@ -112,16 +128,36 @@ fun Route.orderRoutes(
                 val principal = call.principal<JWTPrincipal>()!!
                 val userId = principal.payload.getClaim("id").asInt()
 
-                val myOrders = orderRepo.getAll().filter { it.userId == userId }
+                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val offset = (page - 1) * limit
 
-                if (myOrders.isEmpty()) {
+                val allOrders = orderRepo.getAll().filter { it.userId == userId }
+                val total = allOrders.size.toLong()
+
+                if (total == 0L) {
                     return@get call.respond(
                         HttpStatusCode.OK,
-                        ErrorResponse("No orders yet")
+                        PagedResponse(
+                            page = page,
+                            limit = limit,
+                            total = 0,
+                            data = emptyList<OrderDto>()
+                        )
                     )
                 }
 
-                call.respond(HttpStatusCode.OK, myOrders )
+                val pagedOrders = allOrders.drop(offset).take(limit)
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    PagedResponse(
+                        page = page,
+                        limit = limit,
+                        total = total,
+                        data = pagedOrders
+                    )
+                )
             }
         }
 

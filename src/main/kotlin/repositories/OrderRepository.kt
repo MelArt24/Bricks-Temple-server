@@ -10,6 +10,26 @@ import java.time.LocalDateTime
 
 open class OrderRepository {
 
+    open fun getPaged(offset: Int, limit: Int): Pair<List<OrderDto>, Long> = transaction {
+        val total = Orders.selectAll().count()
+
+        val orders = Orders
+            .selectAll()
+            .orderBy(Orders.createdAt to SortOrder.DESC)
+            .limit(limit, offset.toLong())
+            .map {
+                OrderDto(
+                    id = it[Orders.id],
+                    userId = it[Orders.userId],
+                    status = OrderStatus.valueOf(it[Orders.status].uppercase()),
+                    totalPrice = it[Orders.totalPrice],
+                    createdAt = it[Orders.createdAt]
+                )
+            }
+
+        orders to total
+    }
+
     open fun getAll(): List<OrderDto> = transaction {
         Orders.selectAll().map {
             OrderDto(

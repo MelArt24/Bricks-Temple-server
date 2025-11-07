@@ -33,4 +33,12 @@ class FakeOrderRepository : OrderRepository() {
     }
 
     override fun delete(id: Int): Boolean = orders.removeIf { it.id == id }
+
+    override fun getPaged(offset: Int, limit: Int): Pair<List<OrderDto>, Long> {
+        val total = orders.size.toLong()
+        val paged = orders.drop(offset).take(limit)
+        return paged to total
+    }
+
+    fun count(): Long = orders.size.toLong()
 }
