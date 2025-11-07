@@ -1,5 +1,6 @@
 package com.brickstemple
 
+import com.brickstemple.plugins.configureRateLimiting
 import com.brickstemple.plugins.configureSecurity
 import com.brickstemple.plugins.configureSerialization
 import com.brickstemple.repositories.*
@@ -28,6 +29,7 @@ fun Application.module(
 
     configureSerialization()
     configureSecurity()
+    configureRateLimiting()
 
     routing {
         authRoutes(userRepo)
