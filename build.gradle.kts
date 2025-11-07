@@ -3,6 +3,7 @@ plugins {
     id("io.ktor.plugin") version "3.0.0"
     application
     kotlin("plugin.serialization") version "1.9.0"
+    id("org.jetbrains.kotlinx.kover") version "0.7.5"
 }
 
 group = "org.example"
