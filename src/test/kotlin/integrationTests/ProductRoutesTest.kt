@@ -1,6 +1,5 @@
-package com.brickstemple
+package integrationTests
 
-import TokenResponse
 import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.users.UserDto
 import com.brickstemple.fakeRepositories.FakeProductRepository

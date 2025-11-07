@@ -1,6 +1,5 @@
-package com.brickstemple
+package integrationTests
 
-import TokenResponse
 import com.brickstemple.dto.orders.OrderDto
 import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.users.UserDto

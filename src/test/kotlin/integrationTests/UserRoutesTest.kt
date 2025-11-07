@@ -1,8 +1,9 @@
-package com.brickstemple
+package com.brickstemple.integrationTests
 
-import TokenResponse
+import integrationTests.TokenResponse
 import com.brickstemple.dto.users.UserDto
 import com.brickstemple.fakeRepositories.FakeUserRepository
+import com.brickstemple.module
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

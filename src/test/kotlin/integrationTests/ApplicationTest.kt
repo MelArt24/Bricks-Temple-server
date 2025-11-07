@@ -1,5 +1,6 @@
-package com.brickstemple
+package integrationTests
 
+import com.brickstemple.module
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.testing.*

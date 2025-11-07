@@ -1,4 +1,4 @@
-package com.brickstemple
+package integrationTests
 
 import com.brickstemple.fakeRepositories.FakeUserRepository
 import com.brickstemple.plugins.configureSerialization

@@ -1,6 +1,6 @@
-package com.brickstemple
+package com.brickstemple.integrationTests
 
-import TokenResponse
+import integrationTests.TokenResponse
 import com.brickstemple.fakeRepositories.FakeUserRepository
 import com.brickstemple.plugins.configureSecurity
 import com.brickstemple.plugins.configureSerialization

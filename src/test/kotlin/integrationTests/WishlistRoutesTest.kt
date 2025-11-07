@@ -1,6 +1,6 @@
-package com.brickstemple
+package com.brickstemple.integrationTests
 
-import TokenResponse
+import integrationTests.TokenResponse
 import com.brickstemple.dto.users.UserDto
 import com.brickstemple.fakeRepositories.FakeWishlistRepository
 import com.brickstemple.fakeRepositories.FakeWishlistItemRepository
