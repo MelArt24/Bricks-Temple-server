@@ -15,6 +15,20 @@ open class ProductRepository {
         Products.selectAll().orderBy(Products.id to SortOrder.DESC).map { it.toProductDto() }
     }
 
+    open fun getPaged(page: Int, limit: Int): List<ProductDto> = transaction {
+        val offset = (page - 1) * limit
+        Products
+            .selectAll()
+            .orderBy(Products.id to SortOrder.DESC)
+            .limit(limit, offset.toLong())
+            .map { it.toProductDto() }
+    }
+
+    open fun count(): Long = transaction {
+        Products.selectAll().count()
+    }
+
+
     open fun getById(id: Int): ProductDto? = transaction {
         Products.select { Products.id eq id }.singleOrNull()?.toProductDto()
     }

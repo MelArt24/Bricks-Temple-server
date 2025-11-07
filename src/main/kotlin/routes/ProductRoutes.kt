@@ -2,6 +2,7 @@ package com.brickstemple.routes
 
 import com.brickstemple.dto.CreatedResponse
 import com.brickstemple.dto.ErrorResponse
+import com.brickstemple.dto.products.PagedResponse
 import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.products.ProductUpdateDto
 import com.brickstemple.repositories.ProductRepository
@@ -19,12 +20,36 @@ fun Route.productRoutes(repo: ProductRepository) {
 
         get {
             try {
-                val products = repo.getAll()
+                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+
+                if (page < 1 || limit < 1) {
+                    return@get call.respond(HttpStatusCode.BadRequest,
+                        ErrorResponse("Invalid page or limit", "page and limit must be > 0"))
+                }
+
+                val products = if (call.request.queryParameters.contains("page")) {
+                    repo.getPaged(page, limit)
+                } else {
+                    repo.getAll()
+                }
+
+                val total = repo.count()
+
                 if (products.isEmpty()) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "No products found"))
                 } else {
-                    call.respond(HttpStatusCode.OK, products)
+                    call.respond(
+                        HttpStatusCode.OK,
+                        PagedResponse(
+                            page = page,
+                            limit = limit,
+                            total = total,
+                            data = products
+                        )
+                    )
                 }
+
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
@@ -63,7 +88,7 @@ fun Route.productRoutes(repo: ProductRepository) {
                 try {
                     val body = call.receive<ProductDto>()
 
-                    if (body.name.isBlank() || body.price == null) {
+                    if (body.name.isBlank()) {
                         return@post call.respond(
                             HttpStatusCode.BadRequest,
                             ErrorResponse("Missing required fields: name or price")
