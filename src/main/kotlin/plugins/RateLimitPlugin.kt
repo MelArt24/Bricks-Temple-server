@@ -11,8 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 fun Application.configureRateLimiting() {
 
     val requestsMap = ConcurrentHashMap<String, MutableList<Long>>()
-//    val limit = 100
-    val limit = 3 // for test
+    val limit = 100
     val windowMs = 60_000L
 
     intercept(ApplicationCallPipeline.Plugins) {
