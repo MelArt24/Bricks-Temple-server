@@ -5,13 +5,14 @@ import com.brickstemple.dto.ErrorResponse
 import com.brickstemple.dto.products.PagedResponse
 import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.products.ProductUpdateDto
+import com.brickstemple.models.Products
 import com.brickstemple.repositories.ProductRepository
+import com.brickstemple.util.toProductDto
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.auth.*
-
 
 
 fun Route.productRoutes(repo: ProductRepository) {
@@ -20,35 +21,34 @@ fun Route.productRoutes(repo: ProductRepository) {
 
         get {
             try {
-                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val type = call.request.queryParameters["type"]
+                val category = call.request.queryParameters["category"]
+                val search = call.request.queryParameters["search"]
 
-                if (page < 1 || limit < 1) {
-                    return@get call.respond(HttpStatusCode.BadRequest,
-                        ErrorResponse("Invalid page or limit", "page and limit must be > 0"))
-                }
+                val minPrice = call.request.queryParameters["minPrice"]?.toBigDecimalOrNull()
+                val maxPrice = call.request.queryParameters["maxPrice"]?.toBigDecimalOrNull()
 
-                val products = if (call.request.queryParameters.contains("page")) {
-                    repo.getPaged(page, limit)
-                } else {
-                    repo.getAll()
-                }
+                val year = call.request.queryParameters["year"]
+                val page = call.request.queryParameters["page"]?.toIntOrNull()
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()
 
-                val total = repo.count()
+                val products = repo.filter(
+                    type = type,
+                    category = category,
+                    search = search,
+                    minPrice = minPrice,
+                    maxPrice = maxPrice,
+                    year = year,
+                    page = page,
+                    limit = limit
+                )
 
                 if (products.isEmpty()) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "No products found"))
                 } else {
-                    call.respond(
-                        HttpStatusCode.OK,
-                        PagedResponse(
-                            page = page,
-                            limit = limit,
-                            total = total,
-                            data = products
-                        )
-                    )
+                    call.respond(HttpStatusCode.OK, products)
                 }
+
 
             } catch (e: Exception) {
                 call.respond(
@@ -57,6 +57,7 @@ fun Route.productRoutes(repo: ProductRepository) {
                 )
             }
         }
+
 
         get("/type/{type}") {
             val type = call.parameters["type"]

@@ -3,11 +3,9 @@ package com.brickstemple.fakeRepositories
 import com.brickstemple.dto.products.ProductDto
 import com.brickstemple.dto.products.ProductUpdateDto
 import com.brickstemple.repositories.ProductRepository
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
-/**
- * Fake in-memory ProductRepository for testing without PostgreSQL.
- */
 class FakeProductRepository : ProductRepository() {
     private val products = mutableListOf<ProductDto>()
 
@@ -62,5 +60,61 @@ class FakeProductRepository : ProductRepository() {
         if (from >= products.size) return emptyList()
         return products.drop(from).take(limit)
     }
+
+    override fun filter(
+        type: String?,
+        category: String?,
+        search: String?,
+        minPrice: BigDecimal?,
+        maxPrice: BigDecimal?,
+        year: String?,
+        page: Int?,
+        limit: Int?
+    ): List<ProductDto> {
+
+        var result = products.toList()
+
+        type?.let { t ->
+            result = result.filter { product -> product.type.equals(t, ignoreCase = true) }
+        }
+
+        category?.let { c ->
+            result = result.filter { product -> product.category.equals(c, ignoreCase = true) }
+        }
+
+        search?.let { s ->
+            val q = s.lowercase()
+            result = result.filter {
+                it.name.lowercase().contains(q) ||
+                        (it.description?.lowercase()?.contains(q) ?: false) ||
+                        (it.keywords?.lowercase()?.contains(q) ?: false)
+            }
+        }
+
+        minPrice?.let { min ->
+            result = result.filter { product -> product.price >= min }
+        }
+
+        maxPrice?.let { max ->
+            result = result.filter { product -> product.price <= max }
+        }
+
+        year?.let { y ->
+            result = result.filter { product -> product.year == y }
+        }
+
+        result = result.sortedByDescending { it.id ?: 0 }
+
+        if (page != null && limit != null && page > 0 && limit > 0) {
+            val from = (page - 1) * limit
+            result = if (from < result.size)
+                result.drop(from).take(limit)
+            else
+                emptyList()
+        }
+
+        return result
+    }
+
 
 }

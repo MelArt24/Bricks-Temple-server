@@ -7,6 +7,7 @@ import com.brickstemple.util.toProductDto
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 open class ProductRepository {
@@ -111,5 +112,46 @@ open class ProductRepository {
             .orderBy(Products.id to SortOrder.DESC)
             .map { it.toProductDto() }
     }
+
+    open fun filter(
+        type: String? = null,
+        category: String? = null,
+        search: String? = null,
+        minPrice: BigDecimal? = null,
+        maxPrice: BigDecimal? = null,
+        year: String? = null,
+        page: Int? = null,
+        limit: Int? = null
+    ): List<ProductDto> = transaction {
+
+        var query = Products.selectAll()
+
+        type?.let { query = query.andWhere { Products.type eq it } }
+        category?.let { query = query.andWhere { Products.category eq it } }
+
+        search?.let { s ->
+            val q = "%${s.lowercase()}%"
+            query = query.andWhere {
+                (Products.name.lowerCase() like q) or
+                        (Products.description.lowerCase() like q) or
+                        (Products.keywords.lowerCase() like q)
+            }
+        }
+
+        minPrice?.let { query = query.andWhere { Products.price greaterEq it } }
+        maxPrice?.let { query = query.andWhere { Products.price lessEq it } }
+
+        year?.let { query = query.andWhere { Products.year eq it } }
+
+        query = query.orderBy(Products.id to SortOrder.DESC)
+
+        if (page != null && limit != null && page > 0 && limit > 0) {
+            val offset = (page - 1) * limit
+            query = query.limit(limit, offset.toLong())
+        }
+
+        query.map { it.toProductDto() }
+    }
+
 
 }

@@ -57,7 +57,7 @@ class ProductRoutesTest {
 
         val response = client.get("/products")
         assertEquals(HttpStatusCode.OK, response.status)
-        assertTrue(response.bodyAsText().contains("No products"))
+        assertTrue(response.bodyAsText().contains("No products found"))
     }
 
     @Test
