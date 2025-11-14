@@ -17,11 +17,11 @@ class ProductRepositoryTest {
                 id = null,
                 name = "Lego Car",
                 category = "Vehicles",
-                number = 4211,
+                number = "4211",
                 details = 243,
                 minifigures = 0,
                 age = "7+",
-                year = 2024,
+                year = "2024",
                 size = "medium",
                 condition = "new",
                 price = BigDecimal("99.99"),
@@ -44,8 +44,8 @@ class ProductRepositoryTest {
     @Test
     fun `getAll - returns all created products`() {
         val repo = FakeProductRepository()
-        repo.create(ProductDto(null, "P1", "C1", 1, null, 0, null, null, null, "new", BigDecimal("10.0"), null, null, "lego", "set", "set, lego"))
-        repo.create(ProductDto(null, "P2", "C2", 2, null, 0, null, null, null, "used", BigDecimal("20.0"), null, null, "lego", "set", "set, lego"))
+        repo.create(ProductDto(null, "P1", "C1", "1", null, 0, null, null, null, "new", BigDecimal("10.0"), null, null, "lego", "set", "set, lego"))
+        repo.create(ProductDto(null, "P2", "C2", "2", null, 0, null, null, null, "used", BigDecimal("20.0"), null, null, "lego", "set", "set, lego"))
 
         val all = repo.getAll()
         assertEquals(2, all.size)
@@ -66,7 +66,7 @@ class ProductRepositoryTest {
                 id = null,
                 name = "Original",
                 category = "OldCat",
-                number = 100,
+                number = "100",
                 details = null,
                 minifigures = 0,
                 age = null,
@@ -107,7 +107,7 @@ class ProductRepositoryTest {
         val repo = FakeProductRepository()
 
         val id = repo.create(
-            ProductDto(null, "Removable", "Cat", 200, null, 0, null, null, null, "new", BigDecimal("30.0"), null, null, "lego", "set", "set, lego")
+            ProductDto(null, "Removable", "Cat", "200", null, 0, null, null, null, "new", BigDecimal("30.0"), null, null, "lego", "set", "set, lego")
         )
 
         val removed = repo.delete(id)

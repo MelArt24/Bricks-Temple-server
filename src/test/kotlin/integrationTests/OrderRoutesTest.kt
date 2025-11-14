@@ -47,7 +47,7 @@ class OrderRoutesTest {
             ProductDto(
                 name = "Test Product",
                 category = "test-category",
-                number = 1,
+                number = "1",
                 condition = "new",
                 price = BigDecimal("50.00"),
                 type = "lego"

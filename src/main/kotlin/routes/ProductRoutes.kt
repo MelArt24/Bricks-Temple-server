@@ -58,6 +58,37 @@ fun Route.productRoutes(repo: ProductRepository) {
             }
         }
 
+        get("/type/{type}") {
+            val type = call.parameters["type"]
+                ?: return@get call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse("Missing category parameter")
+                )
+
+            try {
+                val products = repo.getByType(type)
+
+                if (products.isEmpty()) {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        mapOf("message" to "No products found in type '$type'")
+                    )
+                } else {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        products
+                    )
+                }
+
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    ErrorResponse("Unexpected error: ${e.message}")
+                )
+            }
+        }
+
+
         get("{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@get call.respond(

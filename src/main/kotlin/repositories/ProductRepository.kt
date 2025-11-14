@@ -104,4 +104,12 @@ open class ProductRepository {
     open fun delete(id: Int): Boolean = transaction {
         Products.deleteWhere { Products.id eq id } > 0
     }
+
+    open fun getByType(type: String): List<ProductDto> = transaction {
+        Products
+            .select { Products.type eq type }
+            .orderBy(Products.id to SortOrder.DESC)
+            .map { it.toProductDto() }
+    }
+
 }
