@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserMeResponse(
     val id: Int,
+    val username: String,
     val email: String,
     val message: String = "Authenticated successfully"
 )
@@ -73,9 +74,16 @@ fun Route.userRoutes(repo: UserRepository) {
                     val id = principal.payload.getClaim("id").asInt()
                     val email = principal.payload.getClaim("email").asString()
 
+                    val user = repo.getById(id)
+                        ?: return@get call.respond(HttpStatusCode.NotFound, ErrorResponse("User not found"))
+
                     call.respond(
                         HttpStatusCode.OK,
-                        UserMeResponse(id = id, email = email)
+                        UserMeResponse(
+                            id = user.id,
+                            username = user.username,
+                            email = user.email
+                        )
                     )
 
                 } catch (e: Exception) {
