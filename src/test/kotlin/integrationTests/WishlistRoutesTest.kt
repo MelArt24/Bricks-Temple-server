@@ -214,7 +214,7 @@ class WishlistRoutesTest {
     }
 
     @Test
-    fun `DELETE wishlist remove - quantity decreases when more than 1`() = testApplication {
+    fun `DELETE wishlist remove one item - quantity decreases when more than 1`() = testApplication {
         val userRepo = FakeUserRepository()
 
         userRepo.create(UserDto(username = "test4", email = "test4@mail.com", password = "123456"))
@@ -245,7 +245,7 @@ class WishlistRoutesTest {
             .jsonObject["items"]!!
             .jsonArray[0].jsonObject["id"]!!.toString().toInt()
 
-        val deleteResp = client.delete("/wishlist/remove/$itemId") {
+        val deleteResp = client.delete("/wishlist/removeOneItem/$itemId") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
         assertEquals(HttpStatusCode.OK, deleteResp.status)
@@ -747,4 +747,68 @@ class WishlistRoutesTest {
         assertEquals(userId, orders[0].userId)
         assertEquals(BigDecimal("15.00"), orders[0].totalPrice)
     }
+
+    @Test
+    fun `DELETE wishlist remove - removes item completely`() = testApplication {
+        val userRepo = FakeUserRepository()
+
+        userRepo.create(
+            UserDto(
+                username = "testRemove",
+                email = "remove@test.com",
+                password = "123456"
+            )
+        )
+
+        application {
+            configureSerialization()
+            configureSecurity()
+            routing {
+                authRoutes(userRepo)
+                wishlistRoutes(
+                    FakeWishlistRepository(),
+                    FakeWishlistItemRepository(),
+                    FakeOrderRepository(),
+                    FakeOrderItemRepository(),
+                    FakeProductRepository()
+                )
+            }
+        }
+
+        val token = login(client, "remove@test.com", "123456")
+
+        repeat(3) {
+            client.post("/wishlist/add") {
+                header(HttpHeaders.Authorization, "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody("""{"productId": 55}""")
+            }
+        }
+
+        val wishlistResponse = client.get("/wishlist") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+
+        val itemId = Json.parseToJsonElement(wishlistResponse.bodyAsText())
+            .jsonObject["items"]!!
+            .jsonArray[0].jsonObject["id"]!!
+            .toString().toInt()
+
+        val deleteResp = client.delete("/wishlist/remove/$itemId") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+
+        assertEquals(HttpStatusCode.OK, deleteResp.status)
+        assertTrue(deleteResp.bodyAsText().contains("Item removed completely"))
+
+        val after = client.get("/wishlist") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+
+        assertTrue(
+            after.bodyAsText().contains("Wishlist is empty"),
+            "Wishlist should be empty after full removal"
+        )
+    }
+
 }

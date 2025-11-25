@@ -78,6 +78,27 @@ fun Route.wishlistRoutes(
                     return@delete call.respond(HttpStatusCode.Forbidden, mapOf("error" to "This item does not belong to your wishlist"))
                 }
 
+                wishlistItemRepo.delete(itemId)
+
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Item removed completely"))
+            }
+
+
+            delete("/removeOneItem/{id}") {
+                val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("id").asInt()
+                val itemId = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid or missing item ID"))
+
+                val wishlist = wishlistRepo.getByUser(userId)
+                    ?: return@delete call.respond(HttpStatusCode.NotFound, mapOf("error" to "Wishlist not found"))
+
+                val item = wishlistItemRepo.getById(itemId)
+                    ?: return@delete call.respond(HttpStatusCode.NotFound, mapOf("error" to "Item not found"))
+
+                if (item.wishlistId != wishlist.id) {
+                    return@delete call.respond(HttpStatusCode.Forbidden, mapOf("error" to "This item does not belong to your wishlist"))
+                }
+
                 wishlistItemRepo.decrementOrDelete(itemId)
                 call.respond(HttpStatusCode.OK, mapOf("message" to "Quantity decreased or item deleted"))
             }
