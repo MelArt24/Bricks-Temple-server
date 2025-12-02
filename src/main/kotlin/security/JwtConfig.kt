@@ -36,7 +36,7 @@ object JwtConfig {
             .withClaim("email", email)
             .withClaim("id", id)
             .withClaim("role", role)
-            .withExpiresAt(Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 год
+            .withExpiresAt(Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 14)) // 14 days
             .sign(algorithm)
 
 }
