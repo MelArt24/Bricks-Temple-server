@@ -50,7 +50,11 @@ open class UserRepository {
         Users.update({ Users.id eq id }) {
             it[username] = u.username
             it[email] = u.email
-            it[password] = HashUtil.hashPassword(u.password)
+
+            if (!u.password.isNullOrBlank()) {
+                it[password] = HashUtil.hashPassword(u.password)
+            }
+
             u.role?.let { roleValue -> it[role] = roleValue }
         } > 0
     }
