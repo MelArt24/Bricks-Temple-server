@@ -5,6 +5,6 @@ RUN gradle build -x test --no-daemon
 
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY --from=build /app/build/libs/*all.jar app.jar
 
 CMD ["java", "-jar", "app.jar"]
